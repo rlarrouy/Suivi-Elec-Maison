@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Linq;
 using System.Data;
 using Suivi_Elec_Maison.Database;
 
@@ -9,11 +10,14 @@ namespace Suivi_Elec_Maison
 {
     public partial class MeasurementsWindow : Window
     {
+        private DataTable? _currentData;
+
         public MeasurementsWindow()
         {
             InitializeComponent();
             Loaded += MeasurementsWindow_Loaded;
             BtnRefresh.Click += async (s, e) => await LoadMeasuresAsync();
+            CbMonth.SelectionChanged += CbMonth_SelectionChanged;
         }
 
         private async void MeasurementsWindow_Loaded(object? sender, RoutedEventArgs e)
@@ -26,8 +30,80 @@ namespace Suivi_Elec_Maison
             try
             {
                 BtnRefresh.IsEnabled = false;
-                var dt = await DatabaseHelper.GetMeasuresAsync(1000);
-                DataGridMeasures.ItemsSource = dt.DefaultView;
+                var dt = await DatabaseHelper.GetMeasuresAsync(5000);
+
+                //// Transformation de la colonne "Jour" en format YYYY/MM/DD
+                //// Recherche de la colonne "Jour" (insensible à la casse)
+                //var jourCol = dt.Columns.Cast<DataColumn>()
+                //    .FirstOrDefault(c => string.Equals(c.ColumnName, "Jour", StringComparison.OrdinalIgnoreCase))?.ColumnName;
+
+                //if (!string.IsNullOrEmpty(jourCol))
+                //{
+                //    var tmpName = jourCol + "_formatted_tmp";
+                //    if (!dt.Columns.Contains(tmpName))
+                //        dt.Columns.Add(tmpName, typeof(string));
+
+                //    foreach (DataRow r in dt.Rows)
+                //    {
+                //        try
+                //        {
+                //            var val = r[jourCol];
+                //            if (val == DBNull.Value)
+                //            {
+                //                r[tmpName] = string.Empty;
+                //                continue;
+                //            }
+
+                //            if (val is DateTime dtv)
+                //            {
+                //                r[tmpName] = dtv.ToString("yyyy/MM/dd");
+                //            }
+                //            else
+                //            {
+                //                if (DateTime.TryParse(val.ToString(), out var parsed))
+                //                    r[tmpName] = parsed.ToString("yyyy/MM/dd");
+                //                else
+                //                    r[tmpName] = val.ToString();
+                //            }
+                //        }
+                //        catch
+                //        {
+                //            r[tmpName] = string.Empty;
+                //        }
+                //    }
+
+                //    // Supprimer ancienne colonne et renommer la colonne formatée en "Jour"
+                //    dt.Columns.Remove(jourCol);
+                //    dt.Columns[tmpName].ColumnName = "Jour";
+                //}
+
+                _currentData = dt;
+
+                // Remplir la ComboBox des mois (format yyyy/MM)
+                CbMonth.Items.Clear();
+                CbMonth.Items.Add("Tous");
+                var months = new System.Collections.Generic.SortedSet<string>();
+                if (_currentData.Columns.Contains("Jour"))
+                {
+                    foreach (DataRow r in _currentData.Rows)
+                    {
+                        var v = r["Jour"]?.ToString();
+                        if (string.IsNullOrEmpty(v)) continue;
+                        // v attendu en yyyy/MM/dd
+                        if (v.Length >= 7)
+                        {
+                            var ym = v.Substring(0, 7);
+                            months.Add(ym);
+                        }
+                    }
+                }
+
+                foreach (var m in months)
+                    CbMonth.Items.Add(m);
+                CbMonth.SelectedIndex = 0;
+
+                DataGridMeasures.ItemsSource = _currentData.DefaultView;
+                AdjustColumns();
             }
             catch (Exception ex)
             {
@@ -36,6 +112,59 @@ namespace Suivi_Elec_Maison
             finally
             {
                 BtnRefresh.IsEnabled = true;
+            }
+        }
+
+        private void CbMonth_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (_currentData == null)
+                return;
+
+            var sel = CbMonth.SelectedItem as string ?? "Tous";
+            if (sel == "Tous")
+            {
+                DataGridMeasures.ItemsSource = _currentData.DefaultView;
+                return;
+            }
+
+            // Filtrer sur la colonne Jour (format yyyy/MM/dd)
+            try
+            {
+                var dv = new DataView(_currentData) { RowFilter = $"Jour LIKE '{sel}%" + "'" };
+                DataGridMeasures.ItemsSource = dv;
+                AdjustColumns();
+            }
+            catch
+            {
+                DataGridMeasures.ItemsSource = _currentData.DefaultView;
+            }
+        }
+
+        private void AdjustColumns()
+        {
+            // Ensure DataGrid has generated columns
+            if (DataGridMeasures.Columns == null) return;
+
+            // Hide columns by name
+            var hide = new[] { "Id_PrixElec", "Id_Mesure" };
+            foreach (var c in DataGridMeasures.Columns.ToList())
+            {
+                var header = c.Header?.ToString() ?? string.Empty;
+                if (hide.Any(h => string.Equals(h, header, StringComparison.OrdinalIgnoreCase)))
+                {
+                    c.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            // Move 'Jour' column to first position if exists
+            var jourCol = DataGridMeasures.Columns.FirstOrDefault(c => string.Equals((c.Header ?? "").ToString(), "Jour", StringComparison.OrdinalIgnoreCase));
+            if (jourCol != null)
+            {
+                var idx = DataGridMeasures.Columns.IndexOf(jourCol);
+                if (idx > 0)
+                {
+                    DataGridMeasures.Columns.Move(idx, 0);
+                }
             }
         }
     }
