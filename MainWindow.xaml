@@ -1,0 +1,15 @@
+﻿<Window x:Class="Suivi_Elec_Maison.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Suivi_Elec_Maison"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid Margin="10">
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Button x:Name="BtnOpenConfig" Width="120" Height="30">Configuration</Button>
+            <Button x:Name="BtnOpenMeasures" Width="120" Height="30">Mesures</Button>
+        </StackPanel>
+    </Grid>
+</Window>
