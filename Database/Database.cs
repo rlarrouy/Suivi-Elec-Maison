@@ -39,17 +39,105 @@ namespace Suivi_Elec_Maison.Database
         }
 
         // Récupère les dernières mesures depuis la table "Mesures" et les retourne sous forme de DataTable.
+        // Méthode robuste : détecte les colonnes réelles et choisit une colonne d'ORDER BY adaptée
+        // pour éviter l'erreur 'column "id" does not exist'.
         public static async Task<DataTable> GetMeasuresAsync(int limit = 1000)
         {
             var dt = new DataTable();
             using var conn = await GetOpenConnectionAsync();
-            // Utiliser un nom de table entre guillemets pour respecter la casse éventuelle
-            //var sql = $"SELECT * FROM public.\"Mesures\" ORDER BY id DESC LIMIT {limit}";
-            var sql = $"SELECT \"Id_Mesure\", \"Jour\", \"Production\", \"Stockage\", \"Autoconsommation\", \"Conso_Batterie\", \"Conso_Reseau\", \"Conso_Totale\" FROM public.\"Mesures\" ORDER BY id DESC LIMIT {limit}";
-            using var cmd = new NpgsqlCommand(sql, conn);
-            using var reader = await cmd.ExecuteReaderAsync();
-            dt.Load(reader);
-            return dt;
+
+            // Récupérer le nom réel de la table et la liste des colonnes depuis information_schema
+            var columns = new System.Collections.Generic.List<string>();
+            string actualTableName = null;
+            var sqlCols = @"SELECT table_name, column_name
+FROM information_schema.columns
+WHERE table_schema = 'public' AND (table_name = @t OR table_name = lower(@t))
+ORDER BY ordinal_position";
+
+            using (var cmd = new NpgsqlCommand(sqlCols, conn))
+            {
+                cmd.Parameters.AddWithValue("t", "Mesures");
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    if (actualTableName == null) actualTableName = reader.GetString(0);
+                    columns.Add(reader.GetString(1));
+                }
+            }
+
+            // Si la table n'a pas été trouvée, tenter une sélection simple (non ordonnée)
+            if (columns.Count == 0)
+            {
+                try
+                {
+                    using var cmd = new NpgsqlCommand("SELECT * FROM Mesures LIMIT @limit", conn);
+                    cmd.Parameters.AddWithValue("limit", limit);
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    dt.Load(reader);
+                    return dt;
+                }
+                catch (PostgresException)
+                {
+                    throw new Exception("La table 'Mesures' est introuvable dans le schéma public.");
+                }
+            }
+
+            // Déterminer si le nom de table doit être cité (s'il contient des majuscules ou caractères spéciaux)
+            bool needsQuoting = actualTableName != actualTableName.ToLowerInvariant();
+            string tableRef = needsQuoting ? $"public.\"{actualTableName.Replace("\"", "\"\"") }\"" : $"public.{actualTableName}";
+
+            // Choix d'une colonne pour ORDER BY : préférer id, *_id, timestamp/date
+            string orderCol = null;
+            string[] preferred = new[] { "id", "measurement_id", "mesure_id", "timestamp", "time", "date", "created_at", "created" };
+            foreach (var p in preferred)
+            {
+                var found = columns.Find(c => string.Equals(c, p, StringComparison.OrdinalIgnoreCase));
+                if (found != null)
+                {
+                    orderCol = found;
+                    break;
+                }
+            }
+            if (orderCol == null)
+            {
+                var found = columns.Find(c => c.EndsWith("_id", StringComparison.OrdinalIgnoreCase));
+                if (found != null) orderCol = found;
+            }
+
+            string sql;
+            if (!string.IsNullOrEmpty(orderCol))
+            {
+                bool colNeedsQuote = orderCol != orderCol.ToLowerInvariant();
+                var colRef = colNeedsQuote ? $"\"{orderCol.Replace("\"", "\"\"") }\"" : orderCol;
+                sql = $"SELECT * FROM {tableRef} ORDER BY {colRef} DESC LIMIT @limit";
+            }
+            else
+            {
+                sql = $"SELECT * FROM {tableRef} LIMIT @limit";
+            }
+
+            try
+            {
+                using var cmd2 = new NpgsqlCommand(sql, conn);
+                cmd2.Parameters.AddWithValue("limit", limit);
+                using var reader2 = await cmd2.ExecuteReaderAsync();
+                dt.Load(reader2);
+                return dt;
+            }
+            catch (PostgresException ex)
+            {
+                // Si la colonne d'ordre n'existe pas, retenter sans ORDER BY
+                if (ex.SqlState == "42703")
+                {
+                    using var cmd3 = new NpgsqlCommand($"SELECT * FROM {tableRef} LIMIT @limit", conn);
+                    cmd3.Parameters.AddWithValue("limit", limit);
+                    using var reader3 = await cmd3.ExecuteReaderAsync();
+                    dt.Load(reader3);
+                    return dt;
+                }
+
+                throw;
+            }
         }
     }
 
