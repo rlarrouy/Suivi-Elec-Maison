@@ -45,7 +45,7 @@ namespace Suivi_Elec_Maison
             try
             {
                 using var conn = await DatabaseHelper.GetOpenConnectionAsync();
-                MessageBox.Show("Connexion à la base réussie.", "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
+                //MessageBox.Show("Connexion à la base réussie.", "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
                 await conn.CloseAsync();
             }
             catch (Exception ex)

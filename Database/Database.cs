@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Data;
 using System.IO;
 using System.Threading.Tasks;
@@ -38,6 +39,17 @@ namespace Suivi_Elec_Maison.Database
             return conn;
         }
 
+        // Quote a PostgreSQL identifier only when necessary (contains uppercase or special chars)
+        private static string QuoteIdent(string ident)
+        {
+            if (ident == null) return ident;
+            // unquoted identifiers are folded to lower-case by Postgres
+            if (ident != ident.ToLowerInvariant())
+                return "\"" + ident.Replace("\"", "\"\"") + "\"";
+
+            return ident;
+        }
+
         // Récupère les dernières mesures depuis la table "Mesures" et les retourne sous forme de DataTable.
         // Méthode robuste : détecte les colonnes réelles et choisit une colonne d'ORDER BY adaptée
         // pour éviter l'erreur 'column "id" does not exist'.
@@ -66,11 +78,12 @@ ORDER BY ordinal_position";
             }
 
             // Si la table n'a pas été trouvée, tenter une sélection simple (non ordonnée)
-            if (columns.Count == 0)
+            /*if (columns.Count == 0)
             {
                 try
                 {
-                    using var cmd = new NpgsqlCommand("SELECT * FROM Mesures LIMIT @limit", conn);
+                    using var cmd = new NpgsqlCommand("SELECT Jour FROM Mesures LIMIT @limit", conn);
+                    //using var cmd = new NpgsqlCommand("SELECT * FROM Mesures LIMIT @limit", conn);
                     cmd.Parameters.AddWithValue("limit", limit);
                     using var reader = await cmd.ExecuteReaderAsync();
                     dt.Load(reader);
@@ -80,11 +93,33 @@ ORDER BY ordinal_position";
                 {
                     throw new Exception("La table 'Mesures' est introuvable dans le schéma public.");
                 }
+            }*/
+
+            
+
+            // Si la table n'a pas été trouvée, remonter une erreur claire
+            if (string.IsNullOrEmpty(actualTableName) || columns.Count == 0)
+            {
+                throw new Exception("La table 'Mesures' est introuvable dans le schéma public ou ne contient pas de colonnes.");
             }
 
-            // Déterminer si le nom de table doit être cité (s'il contient des majuscules ou caractères spéciaux)
-            bool needsQuoting = actualTableName != actualTableName.ToLowerInvariant();
-            string tableRef = needsQuoting ? $"public.\"{actualTableName.Replace("\"", "\"\"") }\"" : $"public.{actualTableName}";
+            // Déterminer la référence de table en appliquant le quoting si nécessaire
+            string tableRef = "public." + QuoteIdent(actualTableName);
+
+            // Construire la liste des colonnes à sélectionner de manière sûre.
+            // Si nous avons découvert des colonnes via information_schema, on choisit la colonne 'Jour' si elle existe
+            // sinon on joint toutes les colonnes en les quoteant correctement.
+            string paramselect = "*";
+            var selectedCol = columns.Find(c => string.Equals(c, paramselect, StringComparison.OrdinalIgnoreCase));
+            if (selectedCol != null)
+            {
+                paramselect = QuoteIdent(selectedCol);
+            }
+            else
+            {
+                paramselect = string.Join(", ", columns.Select(c => QuoteIdent(c)));
+            }
+          
 
             // Choix d'une colonne pour ORDER BY : préférer id, *_id, timestamp/date
             string orderCol = null;
@@ -105,15 +140,17 @@ ORDER BY ordinal_position";
             }
 
             string sql;
+
+
             if (!string.IsNullOrEmpty(orderCol))
             {
                 bool colNeedsQuote = orderCol != orderCol.ToLowerInvariant();
                 var colRef = colNeedsQuote ? $"\"{orderCol.Replace("\"", "\"\"") }\"" : orderCol;
-                sql = $"SELECT * FROM {tableRef} ORDER BY {colRef} DESC LIMIT @limit";
+                sql = $"SELECT {paramselect} FROM {tableRef} ORDER BY {colRef} DESC LIMIT @limit";
             }
             else
             {
-                sql = $"SELECT * FROM {tableRef} LIMIT @limit";
+                sql = $"SELECT {paramselect} FROM {tableRef} LIMIT @limit";
             }
 
             try
@@ -129,7 +166,7 @@ ORDER BY ordinal_position";
                 // Si la colonne d'ordre n'existe pas, retenter sans ORDER BY
                 if (ex.SqlState == "42703")
                 {
-                    using var cmd3 = new NpgsqlCommand($"SELECT * FROM {tableRef} LIMIT @limit", conn);
+                    using var cmd3 = new NpgsqlCommand($"SELECT {paramselect} FROM {tableRef} LIMIT @limit", conn);
                     cmd3.Parameters.AddWithValue("limit", limit);
                     using var reader3 = await cmd3.ExecuteReaderAsync();
                     dt.Load(reader3);
