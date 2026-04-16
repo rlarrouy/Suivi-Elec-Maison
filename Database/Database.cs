@@ -76,26 +76,7 @@ ORDER BY ordinal_position";
                     columns.Add(reader.GetString(1));
                 }
             }
-
-            // Si la table n'a pas été trouvée, tenter une sélection simple (non ordonnée)
-            /*if (columns.Count == 0)
-            {
-                try
-                {
-                    using var cmd = new NpgsqlCommand("SELECT Jour FROM Mesures LIMIT @limit", conn);
-                    //using var cmd = new NpgsqlCommand("SELECT * FROM Mesures LIMIT @limit", conn);
-                    cmd.Parameters.AddWithValue("limit", limit);
-                    using var reader = await cmd.ExecuteReaderAsync();
-                    dt.Load(reader);
-                    return dt;
-                }
-                catch (PostgresException)
-                {
-                    throw new Exception("La table 'Mesures' est introuvable dans le schéma public.");
-                }
-            }*/
-
-            
+           
 
             // Si la table n'a pas été trouvée, remonter une erreur claire
             if (string.IsNullOrEmpty(actualTableName) || columns.Count == 0)
@@ -185,6 +166,73 @@ ORDER BY ordinal_position";
             var dt = new DataTable();
             dt.Load(reader);
             return dt;
+        }
+
+        // Résultat de la recherche de tarif
+        public record PrixElecResult(int Id);
+
+        /// <summary>
+        /// Retourne l'ID et le libellé du tarif Prix_Elec correspondant à la date donnée.
+        /// Si Date_fin est NULL, on considère 2050-12-31 comme date de fin.
+        /// </summary>
+        public static async Task<PrixElecResult?> GetIdPrixElecForDateAsync(DateTime date)
+        {
+            //string dateformat = date.ToString("yyyy-MM-dd");
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+        SELECT  ""Id_Prix""
+        FROM    ""Prix_Elec""
+        WHERE   ""Date_Debut"" <= @date
+          AND   COALESCE(""Date_Fin"", '2050-12-31'::date) >= @date
+        ORDER BY ""Date_Debut"" DESC
+        LIMIT 1", conn);
+
+            cmd.Parameters.AddWithValue("date", date.Date);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                var id = reader.GetInt32(0);
+                //var label = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                return new PrixElecResult(id);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Insère une nouvelle mesure dans la table Mesures.
+        /// </summary>
+        public static async Task InsertMesureAsync(
+            DateTime jour,
+            int? idPrixElec,
+            decimal production,
+            decimal stockage,
+            decimal autoconsommation,
+            decimal consoBatterie,
+            decimal consoReseau,
+            decimal consoTotale)
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+        INSERT INTO ""Mesures""
+            (""Jour"", ""Production"", ""Stockage"", ""Autoconsommation"",
+             ""Conso_Batterie"", ""Conso_Reseau"", ""Conso_Totale"", ""Id_PrixElec"")
+        VALUES
+            (@jour, @production, @stockage, @autoconsommation,
+             @consoBatterie, @consoReseau, @consoTotale, @idPrixElec)", conn);
+
+            cmd.Parameters.AddWithValue("jour", jour.Date);
+            cmd.Parameters.AddWithValue("production", production);
+            cmd.Parameters.AddWithValue("stockage", stockage);
+            cmd.Parameters.AddWithValue("autoconsommation", autoconsommation);
+            cmd.Parameters.AddWithValue("consoBatterie", consoBatterie);
+            cmd.Parameters.AddWithValue("consoReseau", consoReseau);
+            cmd.Parameters.AddWithValue("consoTotale", consoTotale);
+            cmd.Parameters.AddWithValue("idPrixElec", idPrixElec.HasValue
+                                                                ? (object)idPrixElec.Value
+                                                                : DBNull.Value);
+
+            await cmd.ExecuteNonQueryAsync();
         }
     }
 

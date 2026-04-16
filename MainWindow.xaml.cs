@@ -44,6 +44,13 @@ namespace Suivi_Elec_Maison
                 pw.Owner = this;
                 pw.Show();
             };
+
+            BtnAddMeasure.Click += (s, e) =>
+            {
+                var win = new AddMeasureWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            };
         }
 
         private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
