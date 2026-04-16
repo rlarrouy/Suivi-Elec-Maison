@@ -8,8 +8,10 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid Margin="10">
         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
-            <Button x:Name="BtnOpenConfig" Width="120" Height="30">Configuration</Button>
-            <Button x:Name="BtnOpenMeasures" Width="120" Height="30">Mesures</Button>
+            <Button x:Name="BtnOpenConfig"    Width="120" Height="30">Configuration</Button>
+            <Button x:Name="BtnOpenMeasures"  Width="120" Height="30">Mesures</Button>
+            <Button x:Name="BtnOpenPrixElec"  Width="120" Height="30">Prix Elec</Button>
+            <!-- ← AJOUTER -->
         </StackPanel>
     </Grid>
 </Window>

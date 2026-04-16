@@ -37,6 +37,13 @@ namespace Suivi_Elec_Maison
                 mw.Owner = this;
                 mw.Show();
             };
+            // Après le bloc BtnOpenMeasures.Click existant, ajouter :
+            BtnOpenPrixElec.Click += (s, e) =>
+            {
+                var pw = new PrixElecWindow();
+                pw.Owner = this;
+                pw.Show();
+            };
         }
 
         private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
@@ -58,5 +65,6 @@ namespace Suivi_Elec_Maison
         {
 
         }
+
     }
 }

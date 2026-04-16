@@ -176,6 +176,16 @@ ORDER BY ordinal_position";
                 throw;
             }
         }
+        public static async Task<DataTable> GetPrixElecAsync()
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand("SELECT * FROM \"Prix_Elec\" ORDER BY 1", conn);
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            var dt = new DataTable();
+            dt.Load(reader);
+            return dt;
+        }
     }
 
     public static class EncryptedConfig
