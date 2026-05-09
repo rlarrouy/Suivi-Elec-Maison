@@ -234,6 +234,81 @@ ORDER BY ordinal_position";
 
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public record MesureExistante(
+        int IdMesure,
+        decimal Production,
+        decimal Stockage,
+        decimal Autoconsommation,
+        decimal ConsoBatterie,
+        decimal ConsoReseau,
+        decimal ConsoTotale,
+        int? IdPrixElec);
+
+        public static async Task<MesureExistante?> GetMesureByDateAsync(DateTime date)
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+        SELECT ""Id_Mesure"", ""Production"", ""Stockage"", ""Autoconsommation"",
+               ""Conso_Batterie"", ""Conso_Reseau"", ""Conso_Totale"", ""Id_PrixElec""
+        FROM   ""Mesures""
+        WHERE  ""Jour"" = @jour
+        LIMIT  1", conn);
+
+            cmd.Parameters.AddWithValue("jour", date.Date);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            return new MesureExistante(
+                IdMesure: reader.GetInt32(0),
+                Production: reader.GetDecimal(1),
+                Stockage: reader.GetDecimal(2),
+                Autoconsommation: reader.GetDecimal(3),
+                ConsoBatterie: reader.GetDecimal(4),
+                ConsoReseau: reader.GetDecimal(5),
+                ConsoTotale: reader.GetDecimal(6),
+                IdPrixElec: reader.IsDBNull(7) ? null : reader.GetInt32(7));
+        }
+
+        public static async Task UpdateMesureAsync(
+            int     idMesure,
+            DateTime jour,
+            int?    idPrixElec,
+            decimal production,
+            decimal stockage,
+            decimal autoconsommation,
+            decimal consoBatterie,
+            decimal consoReseau,
+            decimal consoTotale)
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd  = new NpgsqlCommand(@"
+                UPDATE ""Mesures""
+                SET    ""Jour""             = @jour,
+                       ""Production""       = @production,
+                       ""Stockage""         = @stockage,
+                       ""Autoconsommation"" = @autoconsommation,
+                       ""Conso_Batterie""   = @consoBatterie,
+                       ""Conso_Reseau""     = @consoReseau,
+                       ""Conso_Totale""     = @consoTotale,
+                       ""Id_PrixElec""      = @idPrixElec
+                WHERE  ""Id_Mesure""        = @idMesure", conn);
+
+            cmd.Parameters.AddWithValue("idMesure",        idMesure);
+            cmd.Parameters.AddWithValue("jour",             jour.Date);
+            cmd.Parameters.AddWithValue("production",       production);
+            cmd.Parameters.AddWithValue("stockage",         stockage);
+            cmd.Parameters.AddWithValue("autoconsommation", autoconsommation);
+            cmd.Parameters.AddWithValue("consoBatterie",    consoBatterie);
+            cmd.Parameters.AddWithValue("consoReseau",      consoReseau);
+            cmd.Parameters.AddWithValue("consoTotale",      consoTotale);
+            cmd.Parameters.AddWithValue("idPrixElec",       idPrixElec.HasValue
+                                                                ? (object)idPrixElec.Value
+                                                                : DBNull.Value);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 
     public static class EncryptedConfig
