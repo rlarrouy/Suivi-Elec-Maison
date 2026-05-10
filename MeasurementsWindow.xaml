@@ -1,19 +1,101 @@
 <Window x:Class="Suivi_Elec_Maison.MeasurementsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Mesures" Height="450" Width="800">
+        Title="Mesures" Height="780" Width="900">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>            <!-- champs simulation solaire / à payer -->
         </Grid.RowDefinitions>
 
+        <!-- ── Barre d'outils ── -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8" HorizontalAlignment="Left">
             <Button x:Name="BtnRefresh" Width="100" Height="28" Margin="0,0,8,0">Actualiser</Button>
-            <TextBlock VerticalAlignment="Center" Margin="8,0,4,0">Mois :</TextBlock>
-            <ComboBox x:Name="CbMonth" Width="140" Height="26" VerticalAlignment="Center" />
+            <TextBlock VerticalAlignment="Center" Margin="8,0,4,0">Année :</TextBlock>
+            <ComboBox x:Name="CbYear" Width="80" Height="26" VerticalAlignment="Center"
+              SelectionChanged="CbYear_SelectionChanged"/>
+            <TextBlock VerticalAlignment="Center" Margin="12,0,4,0">Mois :</TextBlock>
+            <ComboBox x:Name="CbMonth" Width="140" Height="26" VerticalAlignment="Center"/>
         </StackPanel>
 
-        <DataGrid x:Name="DataGridMeasures" Grid.Row="1" AutoGenerateColumns="True" IsReadOnly="True"/>
+        <!-- ── DataGrid des mesures ── -->
+        <DataGrid x:Name="DataGridMeasures" Grid.Row="1" AutoGenerateColumns="True"
+                  IsReadOnly="True" Margin="0,0,0,10"/>
+
+        <!-- ── Titre synthèse ── -->
+        <TextBlock Grid.Row="2" FontWeight="SemiBold" FontSize="13"
+                   Margin="0,0,0,4">Synthèse du mois sélectionné</TextBlock>
+
+        <!-- ── Tableau synthèse ── -->
+        <DataGrid x:Name="DataGridSynthese" Grid.Row="3"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                  HeadersVisibility="Column" GridLinesVisibility="All"
+                  MaxHeight="80" Margin="0,0,0,10">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header=""                    Binding="{Binding Libelle}"     Width="130"/>
+                <DataGridTextColumn Header="Production (kWh)"   Binding="{Binding Production}"  Width="*"/>
+                <DataGridTextColumn Header="Stockage (kWh)"     Binding="{Binding Stockage}"    Width="*"/>
+                <DataGridTextColumn Header="Conso verte (kWh)"  Binding="{Binding ConsoVerte}"  Width="*"/>
+                <DataGridTextColumn Header="Conso réseau (kWh)" Binding="{Binding ConsoReseau}" Width="*"/>
+                <DataGridTextColumn Header="Conso totale (kWh)" Binding="{Binding ConsoTotale}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ── Titre ratios ── -->
+        <TextBlock Grid.Row="4" FontWeight="SemiBold" FontSize="13"
+                   Margin="0,0,0,4">Ratios du mois sélectionné</TextBlock>
+
+        <!-- ── Tableau ratios ── -->
+        <DataGrid x:Name="DataGridRatios" Grid.Row="5"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                  HeadersVisibility="Column" GridLinesVisibility="All"
+                  MaxHeight="60" Margin="0,0,0,10">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header=""                    Binding="{Binding Libelle}"        Width="130"/>
+                <DataGridTextColumn Header="Verte / Prod (%)"   Binding="{Binding RatioVerteProd}"  Width="*"/>
+                <DataGridTextColumn Header="Verte / Conso (%)"  Binding="{Binding RatioVerteConso}" Width="*"/>
+                <DataGridTextColumn Header="Prod / Conso (%)"   Binding="{Binding RatioProdConso}"  Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ── Titre simulations ── -->
+        <TextBlock Grid.Row="6" FontWeight="SemiBold" FontSize="13"
+                   Margin="0,0,0,4">Simulations financières du mois sélectionné</TextBlock>
+
+        <!-- ── Tableau simulations ── -->
+        <DataGrid x:Name="DataGridSimulations" Grid.Row="7"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                  HeadersVisibility="Column" GridLinesVisibility="All"
+                  MaxHeight="100" Margin="0,0,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header=""          Binding="{Binding Libelle}" Width="160"/>
+                <DataGridTextColumn Header="HP (€)"   Binding="{Binding HP}"      Width="*"/>
+                <DataGridTextColumn Header="HC (€)"   Binding="{Binding HC}"      Width="*"/>
+                <DataGridTextColumn Header="Total (€)" Binding="{Binding Total}"  Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ── Champs récapitulatifs ── -->
+        <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBlock VerticalAlignment="Center" FontWeight="SemiBold"
+               Margin="0,0,8,0">Simulation solaire :</TextBlock>
+            <TextBlock x:Name="TxtSimulationSolaire" VerticalAlignment="Center"
+               MinWidth="80" Margin="0,0,30,0" FontSize="13"/>
+
+            <TextBlock VerticalAlignment="Center" FontWeight="SemiBold"
+               Margin="0,0,8,0">Simulation à payer :</TextBlock>
+            <TextBlock x:Name="TxtSimulationAPayer" VerticalAlignment="Center"
+               MinWidth="80" FontSize="13"/>
+        </StackPanel>
     </Grid>
 </Window>

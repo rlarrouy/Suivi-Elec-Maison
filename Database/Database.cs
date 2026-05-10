@@ -62,9 +62,9 @@ namespace Suivi_Elec_Maison.Database
             var columns = new System.Collections.Generic.List<string>();
             string actualTableName = null;
             var sqlCols = @"SELECT table_name, column_name
-FROM information_schema.columns
-WHERE table_schema = 'public' AND (table_name = @t OR table_name = lower(@t))
-ORDER BY ordinal_position";
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND (table_name = @t OR table_name = lower(@t))
+            ORDER BY ordinal_position";
 
             using (var cmd = new NpgsqlCommand(sqlCols, conn))
             {
@@ -308,6 +308,83 @@ ORDER BY ordinal_position";
                                                                 : DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
+        }
+
+        public record PrixElecTarif(decimal HP, decimal HC);
+
+        /// <summary>
+        /// Retourne les prix HP/HC du tarif le plus fréquent sur les mesures du mois donné.
+        /// </summary>
+        public static async Task<PrixElecTarif?> GetTarifForMonthAsync(int year, int month)
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+                SELECT  pe.""HP"", pe.""HC""
+                FROM    ""Mesures"" m
+                JOIN    ""Prix_Elec"" pe ON pe.""Id_Prix"" = m.""Id_PrixElec""
+                WHERE   EXTRACT(YEAR  FROM m.""Jour"") = @year
+                  AND   EXTRACT(MONTH FROM m.""Jour"") = @month
+                  AND   m.""Id_PrixElec"" IS NOT NULL
+                GROUP BY pe.""HP"", pe.""HC""
+                ORDER BY COUNT(*) DESC
+                LIMIT 1", conn);
+
+            cmd.Parameters.AddWithValue("year", year);
+            cmd.Parameters.AddWithValue("month", month);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            return new PrixElecTarif(
+                HP: reader.GetDecimal(0),
+                HC: reader.GetDecimal(1));
+        }
+
+        /// <summary>
+        /// Retourne les prix HP/HC du tarif le plus récent (Date_debut la plus haute).
+        /// </summary>
+        public static async Task<PrixElecTarif?> GetLatestTarifAsync()
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+        SELECT ""HP"", ""HC""
+        FROM   ""Prix_Elec""
+        ORDER BY ""Date_Debut"" DESC
+        LIMIT 1", conn);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            return new PrixElecTarif(
+                HP: reader.GetDecimal(0),
+                HC: reader.GetDecimal(1));
+        }
+
+
+        /// <summary>
+        /// Retourne les prix HP/HC du tarif le plus fréquent sur les mesures de l'année donnée.
+        /// </summary>
+        public static async Task<PrixElecTarif?> GetTarifForYearAsync(int year)
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+        SELECT  pe.""HP"", pe.""HC""
+        FROM    ""Mesures"" m
+        JOIN    ""Prix_Elec"" pe ON pe.""Id_Prix"" = m.""Id_PrixElec""
+        WHERE   EXTRACT(YEAR FROM m.""Jour"") = @year
+          AND   m.""Id_PrixElec"" IS NOT NULL
+        GROUP BY pe.""HP"", pe.""HC""
+        ORDER BY COUNT(*) DESC
+        LIMIT 1", conn);
+
+            cmd.Parameters.AddWithValue("year", year);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            return new PrixElecTarif(
+                HP: reader.GetDecimal(0),
+                HC: reader.GetDecimal(1));
         }
     }
 
