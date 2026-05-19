@@ -92,30 +92,32 @@
             <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"
                        Margin="0,0,0,8" FontSize="13">Autoconsommation (kWh) :</TextBlock>
             <TextBox x:Name="TxtAutoconsommation" Grid.Row="3" Grid.Column="1"
-                     Height="26" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="13"/>
+                     Height="26" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="13" TextChanged="CalculateConsoTotale"/>
 
             <!-- Conso Batterie -->
             <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"
                        Margin="0,0,0,8" FontSize="13">Conso Batterie (kWh) :</TextBlock>
             <TextBox x:Name="TxtConsoBatterie" Grid.Row="4" Grid.Column="1"
-                     Height="26" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="13"/>
+                     Height="26" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="13" TextChanged="CalculateConsoTotale"/>
 
             <!-- Conso Réseau -->
             <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"
                        Margin="0,0,0,8" FontSize="13">Conso Réseau (kWh) :</TextBlock>
             <TextBox x:Name="TxtConsoReseau" Grid.Row="5" Grid.Column="1"
-                     Height="26" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="13"/>
+                     Height="26" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="13" TextChanged="CalculateConsoTotale"/>
 
             <!-- Conso Totale -->
             <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"
                        Margin="0,0,0,0" FontSize="13">Conso Totale (kWh) :</TextBlock>
             <TextBox x:Name="TxtConsoTotale" Grid.Row="6" Grid.Column="1"
-                     Height="26" Margin="0,0,0,0" VerticalContentAlignment="Center" FontSize="13"/>
+                     Height="26" Margin="0,0,0,0" VerticalContentAlignment="Center" FontSize="13" IsEnabled="False"/>
         </Grid>
 
         <!-- ── Boutons ── -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right"
                     Margin="0,16,0,0">
+            <Button x:Name="BtnSaveAndNew" Width="120" Height="30" Margin="0,0,8,0"
+        IsEnabled="False" Click="BtnSaveAndNew_Click">Enregistrer et nouveau</Button>
             <Button x:Name="BtnSave" Width="120" Height="30" Margin="0,0,8,0"
                     IsEnabled="False" Click="BtnSave_Click">Enregistrer</Button>
             <Button x:Name="BtnCancel" Width="100" Height="30"

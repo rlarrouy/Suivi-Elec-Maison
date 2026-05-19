@@ -19,6 +19,7 @@ namespace Suivi_Elec_Maison
             InitializeComponent();
             // Le bouton Enregistrer est désactivé tant qu'on n'a pas cliqué Rechercher
             BtnSave.IsEnabled = false;
+            BtnSaveAndNew.IsEnabled = false;
         }
 
         // ── Recherche ──────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ namespace Suivi_Elec_Maison
                     TabEdit.IsEnabled = true;
                     TabMain.SelectedItem = TabEdit;
                     BtnSave.Content = "Mettre à jour";
+                    BtnSaveAndNew.Content = "Mettre à jour et nouveau";
                 }
                 else
                 {
@@ -85,9 +87,11 @@ namespace Suivi_Elec_Maison
                     TabEdit.IsEnabled = false;
                     TabMain.SelectedItem = TabNew;
                     BtnSave.Content = "Enregistrer";
+                    BtnSaveAndNew.Content = "Enregistrer et nouveau";
                 }
 
                 BtnSave.IsEnabled = true;
+                BtnSaveAndNew.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -101,7 +105,24 @@ namespace Suivi_Elec_Maison
         }
 
         // ── Enregistrement / Mise à jour ───────────────────────────────────────
-        private async void BtnSave_Click(object sender, RoutedEventArgs e)
+        private void BtnSave_Click(object sender, RoutedEventArgs e)
+        {
+            Save(sender);
+            Close();
+        }
+        private void BtnSaveAndNew_Click(object sender, RoutedEventArgs e)
+        {
+            Save(sender);
+            ResetForm();
+        }
+
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
+        private async void Save(object sender)
         {
             if (DpJour.SelectedDate is not DateTime jour)
             {
@@ -150,8 +171,8 @@ namespace Suivi_Elec_Maison
                         MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
-                DialogResult = true;
-                Close();
+                //DialogResult = true;
+               
             }
             catch (Exception ex)
             {
@@ -162,12 +183,6 @@ namespace Suivi_Elec_Maison
             {
                 BtnSave.IsEnabled = true;
             }
-        }
-
-        private void BtnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
         }
 
         // Empêche de changer d'onglet manuellement si TabEdit est désactivé
@@ -211,5 +226,19 @@ namespace Suivi_Elec_Maison
         private static void ShowFieldError(string fieldName) =>
             MessageBox.Show($"Valeur invalide pour le champ \"{fieldName}\".", "Validation",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
+
+
+        private void CalculateConsoTotale(object sender, TextChangedEventArgs e)
+        {
+            if (TryParseDecimal(TxtConsoBatterie.Text, out decimal consoBatterie) &&
+                TryParseDecimal(TxtConsoReseau.Text, out decimal consoReseau) &&
+                TryParseDecimal(TxtAutoconsommation.Text, out decimal autoconsommation))
+            {
+                TxtConsoTotale.Text = (consoBatterie + consoReseau + autoconsommation).ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
+
+
     }
 }
