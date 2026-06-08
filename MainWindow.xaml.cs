@@ -51,6 +51,12 @@ namespace Suivi_Elec_Maison
                 win.Owner = this;
                 win.ShowDialog();
             };
+            BtnOpenComparison.Click += (s, e) =>
+            {
+                var win = new ComparisonWindow();
+                win.Owner = this;
+                win.Show();
+            };
         }
 
         private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)

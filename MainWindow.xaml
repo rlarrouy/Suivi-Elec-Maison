@@ -12,6 +12,7 @@
             <Button x:Name="BtnOpenMeasures"  Width="120" Height="30">Mesures</Button>
             <Button x:Name="BtnOpenPrixElec"  Width="120" Height="30">Prix Elec</Button>
             <Button x:Name="BtnAddMeasure" Width="120" Height="30">Saisir mesure</Button>
+            <Button x:Name="BtnOpenComparison" Width="120" Height="30">Comparaison</Button>
         </StackPanel>
     </Grid>
 </Window>

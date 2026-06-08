@@ -290,11 +290,11 @@ namespace Suivi_Elec_Maison
             PieSeries = new ISeries[]
             {
                 new PieSeries<double> { Values = [(double)auto_],   Name = "Autoconso.",
-                    Fill = new SolidColorPaint(SKColor.Parse("#1D9E75")), InnerRadius = 45 },
+                    Fill = new SolidColorPaint(SKColor.Parse("#1D9E75")), InnerRadius = 0 },
                 new PieSeries<double> { Values = [(double)bat],     Name = "Batterie",
-                    Fill = new SolidColorPaint(SKColor.Parse("#378ADD")), InnerRadius = 45 },
+                    Fill = new SolidColorPaint(SKColor.Parse("#378ADD")), InnerRadius = 0 },
                 new PieSeries<double> { Values = [(double)reseauD], Name = "Réseau",
-                    Fill = new SolidColorPaint(SKColor.Parse("#BA7517")), InnerRadius = 45 },
+                    Fill = new SolidColorPaint(SKColor.Parse("#BA7517")), InnerRadius = 0 },
             };
 
             OnPropertyChanged(nameof(LineSeries));
@@ -372,7 +372,7 @@ namespace Suivi_Elec_Maison
             DataGridSimulations.ItemsSource = new List<SimulationRow> { rowPrix, rowAuto, rowBat };
 
             decimal solaire = (auto_ * 1.00m * hp) + (bat * 0.75m * hp) + (bat * 0.25m * hc);
-            decimal aPayer = (reseau * 0.75m * hp) + (reseau * 0.25m * hc) + solaire;
+            decimal aPayer = (reseau * 0.75m * hp) + (reseau * 0.25m * hc);
 
             TxtSimSolaire.Text = FmtEur(solaire) + " €";
             TxtSimAPayer.Text = FmtEur(aPayer) + " €";

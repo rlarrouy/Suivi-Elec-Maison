@@ -1,0 +1,269 @@
+﻿<Window x:Class="Suivi_Elec_Maison.ComparisonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        Title="Comparaison de périodes" Height="860" Width="1100"
+        Background="#F5F5F3">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+        <StackPanel>
+
+            <!-- ── Barre supérieure ── -->
+            <DockPanel Margin="0,0,0,14">
+                <TextBlock DockPanel.Dock="Left" Text="⇄ Comparaison de périodes"
+                           FontSize="15" FontWeight="Medium" Foreground="#1A1A1A"
+                           VerticalAlignment="Center"/>
+                <Button x:Name="BtnRefresh" DockPanel.Dock="Right"
+                        Content="↻  Actualiser" Height="28" Padding="12,0"
+                        HorizontalAlignment="Right" Click="BtnRefresh_Click"/>
+            </DockPanel>
+
+            <!-- ── Sélecteurs périodes ── -->
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Période A -->
+                <Border Grid.Column="0" BorderBrush="#378ADD" BorderThickness="0,2,0,0"
+                        Background="White" CornerRadius="8" Padding="12,10">
+                    <StackPanel>
+                        <TextBlock Text="⬤  Période A" FontSize="11" FontWeight="Medium"
+                                   Foreground="#185FA5" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Année" FontSize="12" Foreground="#888"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox x:Name="CbYearA" Width="80" Height="26"
+                                      SelectionChanged="PeriodChanged"/>
+                            <TextBlock Text="Mois" FontSize="12" Foreground="#888"
+                                       VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <ComboBox x:Name="CbMonthA" Width="140" Height="26"
+                                      SelectionChanged="PeriodChanged"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Période B -->
+                <Border Grid.Column="2" BorderBrush="#1D9E75" BorderThickness="0,2,0,0"
+                        Background="White" CornerRadius="8" Padding="12,10">
+                    <StackPanel>
+                        <TextBlock Text="⬤  Période B" FontSize="11" FontWeight="Medium"
+                                   Foreground="#0F6E56" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Année" FontSize="12" Foreground="#888"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox x:Name="CbYearB" Width="80" Height="26"
+                                      SelectionChanged="PeriodChanged"/>
+                            <TextBlock Text="Mois" FontSize="12" Foreground="#888"
+                                       VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <ComboBox x:Name="CbMonthB" Width="140" Height="26"
+                                      SelectionChanged="PeriodChanged"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ── Graphique courbes superposées ── -->
+            <Border Background="White" BorderBrush="#E0E0DE" BorderThickness="0.5"
+                    CornerRadius="10" Padding="14,12" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="Énergie journalière — courbes superposées"
+                               FontSize="13" FontWeight="Medium" Foreground="#888"
+                               Margin="0,0,0,8"/>
+                    <!-- Légende -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Rectangle Width="18" Height="2" Fill="#378ADD" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="Prod A" FontSize="11" Foreground="#888" Margin="0,0,10,0"/>
+                        <Rectangle Width="18" Height="2" Fill="#378ADD" VerticalAlignment="Center"
+                                   StrokeDashArray="4 3" Margin="0,0,4,0"
+                                   OpacityMask="{x:Null}" Opacity="0.55"/>
+                        <TextBlock Text="Prod B" FontSize="11" Foreground="#888" Margin="0,0,10,0"/>
+                        <Rectangle Width="18" Height="2" Fill="#1D9E75" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="C. verte A" FontSize="11" Foreground="#888" Margin="0,0,10,0"/>
+                        <Rectangle Width="18" Height="2" Fill="#1D9E75" VerticalAlignment="Center"
+                                   Opacity="0.55" Margin="0,0,4,0"/>
+                        <TextBlock Text="C. verte B" FontSize="11" Foreground="#888" Margin="0,0,10,0"/>
+                        <Rectangle Width="18" Height="2" Fill="#BA7517" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="C. réseau A" FontSize="11" Foreground="#888" Margin="0,0,10,0"/>
+                        <Rectangle Width="18" Height="2" Fill="#BA7517" VerticalAlignment="Center"
+                                   Opacity="0.55" Margin="0,0,4,0"/>
+                        <TextBlock Text="C. réseau B" FontSize="11" Foreground="#888"/>
+                    </StackPanel>
+                    <lvc:CartesianChart x:Name="LineChart" Height="180"
+                                        Series="{Binding LineSeries}"
+                                        XAxes="{Binding XAxes}"
+                                        YAxes="{Binding YAxes}"
+                                        TooltipPosition="Top"
+                                        LegendPosition="Hidden"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Tableaux synthèse + ratios/simulations ── -->
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Synthèse -->
+                <Border Grid.Column="0" Background="White" BorderBrush="#E0E0DE"
+                        BorderThickness="0.5" CornerRadius="10" Padding="14,12">
+                    <StackPanel>
+                        <TextBlock Text="Synthèse" FontSize="13" FontWeight="Medium"
+                                   Foreground="#888" Margin="0,0,0,10"/>
+                        <DataGrid x:Name="DgSynthese"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                                  BorderThickness="0" RowBackground="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=""         Binding="{Binding Libelle}" Width="130"/>
+                                <DataGridTextColumn Header="A"        Binding="{Binding ValA}"    Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#185FA5"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="B"        Binding="{Binding ValB}"    Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#0F6E56"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn Header="Écart" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Delta}"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{Binding DeltaColor}"
+                                                       FontSize="11"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Ratios + Simulations -->
+                <Border Grid.Column="2" Background="White" BorderBrush="#E0E0DE"
+                        BorderThickness="0.5" CornerRadius="10" Padding="14,12">
+                    <StackPanel>
+                        <!-- Ratios -->
+                        <TextBlock Text="Ratios" FontSize="13" FontWeight="Medium"
+                                   Foreground="#888" Margin="0,0,0,10"/>
+                        <DataGrid x:Name="DgRatios"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                                  BorderThickness="0" RowBackground="Transparent"
+                                  Margin="0,0,0,12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=""    Binding="{Binding Libelle}" Width="120"/>
+                                <DataGridTextColumn Header="A"   Binding="{Binding ValA}"    Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#185FA5"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="B"   Binding="{Binding ValB}"    Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#0F6E56"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn Header="Écart" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Delta}"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{Binding DeltaColor}"
+                                                       FontSize="11"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Separator Margin="0,0,0,10"/>
+
+                        <!-- Simulations -->
+                        <TextBlock Text="Simulations financières" FontSize="13" FontWeight="Medium"
+                                   Foreground="#888" Margin="0,0,0,10"/>
+                        <DataGrid x:Name="DgSimulations"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                                  BorderThickness="0" RowBackground="Transparent"
+                                  Margin="0,0,0,12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=""    Binding="{Binding Libelle}" Width="130"/>
+                                <DataGridTextColumn Header="A (€)" Binding="{Binding ValA}"  Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#185FA5"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="B (€)" Binding="{Binding ValB}"  Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#0F6E56"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn Header="Écart" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Delta}"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{Binding DeltaColor}"
+                                                       FontSize="11"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- KPIs solaire / à payer -->
+                        <UniformGrid Columns="2">
+                            <Border Background="#EAF3DE" CornerRadius="6" Padding="10,8" Margin="0,0,4,0">
+                                <StackPanel>
+                                    <TextBlock Text="☀ Simulation solaire" FontSize="11" Foreground="#3B6D11" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="TxtSolaireA" FontSize="14" FontWeight="Medium" Foreground="#185FA5" Margin="0,0,8,0"/>
+                                        <TextBlock x:Name="TxtSolaireB" FontSize="14" FontWeight="Medium" Foreground="#0F6E56" Margin="0,0,8,0"/>
+                                        <TextBlock x:Name="TxtSolaireDelta" FontSize="11" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FAEEDA" CornerRadius="6" Padding="10,8" Margin="4,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="🧾 Simulation à payer" FontSize="11" Foreground="#854F0B" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="TxtPayerA" FontSize="14" FontWeight="Medium" Foreground="#185FA5" Margin="0,0,8,0"/>
+                                        <TextBlock x:Name="TxtPayerB" FontSize="14" FontWeight="Medium" Foreground="#0F6E56" Margin="0,0,8,0"/>
+                                        <TextBlock x:Name="TxtPayerDelta" FontSize="11" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>
