@@ -20,6 +20,7 @@ namespace Suivi_Elec_Maison
             // Le bouton Enregistrer est désactivé tant qu'on n'a pas cliqué Rechercher
             BtnSave.IsEnabled = false;
             BtnSaveAndNew.IsEnabled = false;
+            Loaded += AddMeasureWindow_Loaded;
         }
 
         // ── Recherche ──────────────────────────────────────────────────────────
@@ -92,6 +93,7 @@ namespace Suivi_Elec_Maison
 
                 BtnSave.IsEnabled = true;
                 BtnSaveAndNew.IsEnabled = true;
+                TxtProduction.Focus();
             }
             catch (Exception ex)
             {
@@ -104,6 +106,20 @@ namespace Suivi_Elec_Maison
             }
         }
 
+
+        private async void AddMeasureWindow_Loaded(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var jour = await DatabaseHelper.GetNearestJourInBaseAsync();
+                TxtDernierJour.Text = jour.HasValue ? jour.Value.ToString("dd/MM/yyyy") : "Aucun";
+            }
+            catch (Exception ex)
+            {
+                TxtDernierJour.Text = "–";
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] Error :  valeur=" , ex.Message);
+            }
+        }
         // ── Enregistrement / Mise à jour ───────────────────────────────────────
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
@@ -113,7 +129,9 @@ namespace Suivi_Elec_Maison
         private void BtnSaveAndNew_Click(object sender, RoutedEventArgs e)
         {
             Save(sender);
+            DpJour.SelectedDate = DpJour.SelectedDate.Value.AddDays(1);
             ResetForm();
+
         }
 
         private void BtnCancel_Click(object sender, RoutedEventArgs e)

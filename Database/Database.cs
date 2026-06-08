@@ -386,6 +386,24 @@ namespace Suivi_Elec_Maison.Database
                 HP: reader.GetDecimal(0),
                 HC: reader.GetDecimal(1));
         }
+
+        /// <summary>
+        /// Retourne le jour en base le plus proche de la date du jour.
+        /// </summary>
+        public static async Task<DateOnly?> GetNearestJourInBaseAsync()
+        {
+            using var conn = await GetOpenConnectionAsync();
+            using var cmd = new NpgsqlCommand(@"
+        SELECT ""Jour""
+        FROM   ""Mesures""
+        ORDER BY ABS(EXTRACT(EPOCH FROM (""Jour""::timestamp - CURRENT_DATE::timestamp)))
+        LIMIT 1", conn);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            return reader.IsDBNull(0) ? null : reader.GetFieldValue<DateOnly>(0);
+        }
     }
 
     public static class EncryptedConfig
