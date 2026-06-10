@@ -24,6 +24,12 @@
     <Compile Remove="Tools\**\*.cs" />
     <None Remove="Tools\**\*" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="MainWindow.xaml.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="MainWindow.xaml" />
+  </ItemGroup>
 
 
 

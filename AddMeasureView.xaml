@@ -1,0 +1,158 @@
+﻿<UserControl x:Class="Suivi_Elec_Maison.AddMeasureView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F5F5F3">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+        <StackPanel>
+
+            <Grid MaxWidth="520" HorizontalAlignment="Left">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- ── Sélection date ── -->
+                <Border Grid.Row="0" Style="{StaticResource Card}" Margin="0,0,0,10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Text="Date" FontSize="12" Foreground="#888"
+                                       VerticalAlignment="Center" Width="130"/>
+                            <DatePicker x:Name="DpJour" Width="160" Height="28"
+                                        SelectedDate="{x:Static system:DateTime.Today}"
+                                        xmlns:system="clr-namespace:System;assembly=mscorlib"/>
+                            <Button x:Name="BtnSearch" Height="28" Padding="10,0"
+                                    Margin="8,0,0,0" Click="BtnSearch_Click">
+                                🔍 Rechercher
+                            </Button>
+                            <Border Background="#F0F0EE" BorderBrush="#E0E0DE"
+                                    BorderThickness="0.5" CornerRadius="6"
+                                    Padding="8,0" Margin="10,0,0,0" Height="28">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Dernier :" FontSize="11"
+                                               Foreground="#888" Margin="0,0,5,0"/>
+                                    <TextBlock x:Name="TxtDernierJour" FontSize="12"
+                                               FontWeight="Medium" Foreground="#1A1A1A"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Bandeau alerte doublon -->
+                        <Border x:Name="PanelAlert" Visibility="Collapsed"
+                                Background="#FFF3CD" BorderBrush="#FFC107"
+                                BorderThickness="0.5" CornerRadius="6"
+                                Padding="10,7" Margin="0,0,0,10">
+                            <TextBlock x:Name="TxtAlert" FontSize="12"
+                                       Foreground="#856404" TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Onglets -->
+                        <TabControl x:Name="TabMain"
+                                    SelectionChanged="TabMain_SelectionChanged"
+                                    Margin="0,0,0,0">
+                            <TabItem x:Name="TabNew" Header="Nouvelle mesure">
+                                <TextBlock FontSize="12" Foreground="#888"
+                                           FontStyle="Italic" Margin="0,8,0,0">
+                                    Aucune mesure trouvée pour cette date.
+                                </TextBlock>
+                            </TabItem>
+                            <TabItem x:Name="TabEdit" Header="Modifier la mesure existante"
+                                     IsEnabled="False">
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="ID mesure :" FontSize="12"
+                                               Foreground="#888"/>
+                                    <TextBlock x:Name="TxtIdMesure" FontSize="12"
+                                               FontWeight="Medium" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Formulaire ── -->
+                <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="165"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ID Prix Élec -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="ID Prix Élec"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center"
+                                   Margin="0,0,0,10"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
+                                    Margin="0,0,0,10">
+                            <Border Background="#F0F0EE" BorderBrush="#E0E0DE"
+                                    BorderThickness="0.5" CornerRadius="6"
+                                    Width="55" Height="28">
+                                <TextBlock x:Name="TxtIdPrixElec" FontSize="13"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock x:Name="TxtPrixElecInfo" FontSize="12"
+                                       Foreground="#888" FontStyle="Italic"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Production (kWh)"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBox x:Name="TxtProduction" Grid.Row="1" Grid.Column="1"
+                                 Height="28" Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Stockage (kWh)"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBox x:Name="TxtStockage" Grid.Row="2" Grid.Column="1"
+                                 Height="28" Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Autoconsommation (kWh)"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBox x:Name="TxtAutoconsommation" Grid.Row="3" Grid.Column="1"
+                                 Height="28" Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Conso batterie (kWh)"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBox x:Name="TxtConsoBatterie" Grid.Row="4" Grid.Column="1"
+                                 Height="28" Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Conso réseau (kWh)"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBox x:Name="TxtConsoReseau" Grid.Row="5" Grid.Column="1"
+                                 Height="28" Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Conso totale (kWh)"
+                                   FontSize="12" Foreground="#888" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtConsoTotale" Grid.Row="6" Grid.Column="1"
+                                 Height="28" VerticalContentAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- ── Boutons ── -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <Button x:Name="BtnSave" Height="32" Padding="16,0"
+                            IsEnabled="False" Click="BtnSave_Click"
+                            Background="#1D9E75" Foreground="White"
+                            BorderThickness="0">
+                        Enregistrer
+                    </Button>
+                    <Button x:Name="BtnSaveAndNew" Height="32" Padding="16,0"
+                            Margin="8,0,0,0" IsEnabled="False"
+                            Click="BtnSaveAndNew_Click">
+                        Enregistrer + nouveau
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

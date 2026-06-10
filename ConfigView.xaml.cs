@@ -1,14 +1,15 @@
+using Npgsql;
+using Suivi_Elec_Maison.Database;
 using System;
 using System.IO;
 using System.Windows;
-using Npgsql;
-using Suivi_Elec_Maison.Database;
+using System.Windows.Controls;
 
 namespace Suivi_Elec_Maison
 {
-    public partial class ConfigWindow : Window
+    public partial class ConfigView : UserControl
     {
-        public ConfigWindow()
+        public ConfigView()
         {
             InitializeComponent();
             BtnTest.Click += BtnTest_Click;

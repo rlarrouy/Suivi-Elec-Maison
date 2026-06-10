@@ -1,0 +1,236 @@
+﻿<UserControl x:Class="Suivi_Elec_Maison.MeasurementsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+        <StackPanel>
+
+            <!-- ── Barre outils ── -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <TextBlock Text="Année" VerticalAlignment="Center"
+                           FontSize="12" Foreground="#888" Margin="0,0,6,0"/>
+                <ComboBox x:Name="CbYear" Width="80" Height="30"
+                          SelectionChanged="CbYear_SelectionChanged"/>
+                <TextBlock Text="Mois" VerticalAlignment="Center"
+                           FontSize="12" Foreground="#888" Margin="12,0,6,0"/>
+                <ComboBox x:Name="CbMonth" Width="140" Height="30"
+                          SelectionChanged="CbMonth_SelectionChanged"/>
+                <Button x:Name="BtnRefresh" Content="↻  Actualiser"
+                        Height="30" Padding="12,0" Margin="10,0,0,0"
+                        Click="BtnRefresh_Click"/>
+            </StackPanel>
+
+            <!-- ── Cartes métriques ── -->
+            <UniformGrid Columns="5" Margin="0,0,0,12">
+                <Border Style="{StaticResource MetricCard}" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="Production" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock x:Name="TxtMetricProduction" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="kWh" Style="{StaticResource MetricUnit}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="3,0,3,0">
+                    <StackPanel>
+                        <TextBlock Text="Conso verte" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock x:Name="TxtMetricConsoVerte" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="kWh (auto + batt.)" Style="{StaticResource MetricUnit}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="3,0,3,0">
+                    <StackPanel>
+                        <TextBlock Text="Conso réseau" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock x:Name="TxtMetricConsoReseau" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="kWh" Style="{StaticResource MetricUnit}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="3,0,3,0">
+                    <StackPanel>
+                        <TextBlock Text="Ratio verte / conso" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock x:Name="TxtMetricRatio" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="du total consommé" Style="{StaticResource MetricUnit}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource MetricCard}" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Stockage" Style="{StaticResource MetricLabel}"/>
+                        <TextBlock x:Name="TxtMetricStockage" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="kWh" Style="{StaticResource MetricUnit}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- ── Graphiques ── -->
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Énergie journalière" Style="{StaticResource CardTitle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Rectangle Width="18" Height="2" Fill="#1D9E75" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Production" FontSize="11" Foreground="#888" Margin="0,0,12,0"/>
+                            <Rectangle Width="18" Height="2" Fill="#378ADD" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Conso verte" FontSize="11" Foreground="#888" Margin="0,0,12,0"/>
+                            <Rectangle Width="18" Height="2" Fill="#BA7517" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Conso réseau" FontSize="11" Foreground="#888" Margin="0,0,12,0"/>
+                            <Rectangle Width="18" Height="2" Fill="#7F77DD" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Stockage" FontSize="11" Foreground="#888"/>
+                        </StackPanel>
+                        <lvc:CartesianChart x:Name="LineChart" Height="180"
+                                            Series="{Binding LineSeries}"
+                                            XAxes="{Binding XAxes}"
+                                            YAxes="{Binding YAxes}"
+                                            TooltipPosition="Top"
+                                            LegendPosition="Hidden"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Répartition consommation" Style="{StaticResource CardTitle}"/>
+                        <lvc:PieChart x:Name="DonutChart" Height="140"
+                                      Series="{Binding PieSeries}"
+                                      LegendPosition="Hidden"
+                                      InitialRotation="-90"
+                                      TooltipPosition="Top"/>
+                        <StackPanel Margin="0,8,0,0">
+                            <DockPanel Margin="0,3,0,0">
+                                <Rectangle Width="10" Height="10" Fill="#1D9E75" RadiusX="2" RadiusY="2"
+                                           Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Autoconsommation" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtPctAuto" FontSize="13" FontWeight="Medium"
+                                           Foreground="#1A1A1A" HorizontalAlignment="Right"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,3,0,0">
+                                <Rectangle Width="10" Height="10" Fill="#378ADD" RadiusX="2" RadiusY="2"
+                                           Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Batterie" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtPctBat" FontSize="13" FontWeight="Medium"
+                                           Foreground="#1A1A1A" HorizontalAlignment="Right"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,3,0,0">
+                                <Rectangle Width="10" Height="10" Fill="#BA7517" RadiusX="2" RadiusY="2"
+                                           Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Réseau" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtPctReseau" FontSize="13" FontWeight="Medium"
+                                           Foreground="#1A1A1A" HorizontalAlignment="Right"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ── Tableaux synthèse + simulations ── -->
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Synthèse &amp; ratios" Style="{StaticResource CardTitle}"/>
+                        <DataGrid x:Name="DataGridSynthese"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                                  BorderThickness="0" RowBackground="Transparent"
+                                  Margin="0,0,0,10">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=""                Binding="{Binding Libelle}"     Width="110"/>
+                                <DataGridTextColumn Header="Prod."           Binding="{Binding Production}"  Width="*"/>
+                                <DataGridTextColumn Header="Stock."          Binding="{Binding Stockage}"    Width="*"/>
+                                <DataGridTextColumn Header="C. verte"        Binding="{Binding ConsoVerte}"  Width="*"/>
+                                <DataGridTextColumn Header="C. réseau"       Binding="{Binding ConsoReseau}" Width="*"/>
+                                <DataGridTextColumn Header="C. totale"       Binding="{Binding ConsoTotale}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Separator Margin="0,0,0,10"/>
+                        <DataGrid x:Name="DataGridRatios"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                                  BorderThickness="0" RowBackground="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=""             Binding="{Binding Libelle}"          Width="110"/>
+                                <DataGridTextColumn Header="Verte/Prod"   Binding="{Binding RatioVerteProd}"   Width="*"/>
+                                <DataGridTextColumn Header="Verte/Conso"  Binding="{Binding RatioVerteConso}"  Width="*"/>
+                                <DataGridTextColumn Header="Prod/Conso"   Binding="{Binding RatioProdConso}"   Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Simulations financières" Style="{StaticResource CardTitle}"/>
+                        <DataGrid x:Name="DataGridSimulations"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                                  BorderThickness="0" RowBackground="Transparent"
+                                  Margin="0,0,0,12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=""           Binding="{Binding Libelle}" Width="130"/>
+                                <DataGridTextColumn Header="HP (€)"     Binding="{Binding HP}"      Width="*"/>
+                                <DataGridTextColumn Header="HC (€)"     Binding="{Binding HC}"      Width="*"/>
+                                <DataGridTextColumn Header="Total (€)"  Binding="{Binding Total}"   Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Separator Margin="0,0,0,10"/>
+                        <UniformGrid Columns="2">
+                            <Border Background="#EAF3DE" CornerRadius="6" Padding="10,8" Margin="0,0,4,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="☀" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Simulation solaire" FontSize="11" Foreground="#3B6D11"/>
+                                        <TextBlock x:Name="TxtSimSolaire" FontSize="15" FontWeight="Medium" Foreground="#27500A"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FAEEDA" CornerRadius="6" Padding="10,8" Margin="4,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🧾" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Simulation à payer" FontSize="11" Foreground="#854F0B"/>
+                                        <TextBlock x:Name="TxtSimAPayer" FontSize="15" FontWeight="Medium" Foreground="#633806"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ── Tableau de détail ── -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <TextBlock Text="Détail des mesures" Style="{StaticResource CardTitle}"
+                                   DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0"/>
+                        <Button x:Name="BtnToggleDetail" DockPanel.Dock="Right"
+                                Content="▼  Tout afficher" HorizontalAlignment="Right"
+                                Height="28" Padding="10,0"
+                                Click="BtnToggleDetail_Click"/>
+                    </DockPanel>
+                    <Border x:Name="DetailBorder" MaxHeight="200" ClipToBounds="True">
+                        <DataGrid x:Name="DataGridMeasures"
+                                  AutoGenerateColumns="True" IsReadOnly="True"
+                                  CanUserSortColumns="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  RowBackground="Transparent"/>
+                    </Border>
+                    <TextBlock x:Name="TxtRowCount" FontSize="11" Foreground="#888" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

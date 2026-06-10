@@ -16,7 +16,8 @@ using static Suivi_Elec_Maison.Database.DatabaseHelper;
 
 namespace Suivi_Elec_Maison
 {
-    public partial class ComparisonWindow : Window, System.ComponentModel.INotifyPropertyChanged
+    public partial class ComparisonView : UserControl,
+        System.ComponentModel.INotifyPropertyChanged
     {
         private DataTable? _allData;
 
@@ -40,7 +41,7 @@ namespace Suivi_Elec_Maison
             set { _yAxes = value; OnPropertyChanged(nameof(YAxes)); }
         }
 
-        public ComparisonWindow()
+        public ComparisonView()
         {
             InitializeComponent();
             DataContext = this;

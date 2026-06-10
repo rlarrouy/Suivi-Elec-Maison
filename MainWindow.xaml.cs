@@ -1,83 +1,77 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Threading.Tasks;
-using Npgsql;
-using Suivi_Elec_Maison.Database;
 
 namespace Suivi_Elec_Maison
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        // Dictionnaire tag → bouton nav pour gérer l'état actif
+        private Dictionary<string, Button> _navButtons = [];
+
+        // Vues instanciées en lazy (une seule instance par vue)
+        private MeasurementsView? _viewMesures;
+        private AddMeasureView? _viewSaisie;
+        private PrixElecView? _viewPrixElec;
+        private ComparisonView? _viewComparaison;
+        private ConfigView? _viewConfig;
+        private DashboardView? _viewDashboard;
+
         public MainWindow()
         {
             InitializeComponent();
-            Loaded += MainWindow_Loaded;
-            // Liaison du bouton d'ouverture de la configuration
-            BtnOpenConfig.Click += (s, e) =>
+
+            _navButtons = new()
             {
-                var cfg = new ConfigWindow();
-                cfg.Owner = this;
-                cfg.ShowDialog();
-            };
-            // Ouvrir la fenêtre des mesures
-            BtnOpenMeasures.Click += (s, e) =>
-            {
-                var mw = new MeasurementsWindow();
-                mw.Owner = this;
-                mw.Show();
-            };
-            // Après le bloc BtnOpenMeasures.Click existant, ajouter :
-            BtnOpenPrixElec.Click += (s, e) =>
-            {
-                var pw = new PrixElecWindow();
-                pw.Owner = this;
-                pw.Show();
+                { "Dashboard",   BtnNavDashboard   },
+                { "Mesures",     BtnNavMesures     },
+                { "Comparaison", BtnNavComparaison },
+                { "Saisie",      BtnNavSaisie      },
+                { "PrixElec",    BtnNavPrixElec    },
+                { "Config",      BtnNavConfig      },
             };
 
-            BtnAddMeasure.Click += (s, e) =>
-            {
-                var win = new AddMeasureWindow();
-                win.Owner = this;
-                win.ShowDialog();
-            };
-            BtnOpenComparison.Click += (s, e) =>
-            {
-                var win = new ComparisonWindow();
-                win.Owner = this;
-                win.Show();
-            };
+            // Afficher le tableau de bord au démarrage
+            NavigateTo("Dashboard");
         }
 
-        private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+        private void Nav_Click(object sender, RoutedEventArgs e)
         {
-            // Tentative de connexion au serveur Postgre distant au démarrage.
-            try
-            {
-                using var conn = await DatabaseHelper.GetOpenConnectionAsync();
-                //MessageBox.Show("Connexion à la base réussie.", "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
-                await conn.CloseAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Impossible de se connecter au serveur PostgreSQL:\n{ex.Message}", "Erreur de connexion", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            if (sender is Button btn && btn.Tag is string tag)
+                NavigateTo(tag);
         }
 
-        private void BtnOpenMeasures_Click(object sender, RoutedEventArgs e)
+        private void NavigateTo(string tag)
         {
+            // Mise à jour des styles nav
+            foreach (var (key, btn) in _navButtons)
+                btn.Style = key == tag
+                    ? (Style)FindResource("NavItemActive")
+                    : (Style)FindResource("NavItem");
 
+            // Changement du titre topbar
+            TxtPageTitle.Text = tag switch
+            {
+                "Dashboard" => "Tableau de bord",
+                "Mesures" => "Mesures",
+                "Comparaison" => "Comparaison de périodes",
+                "Saisie" => "Saisir une mesure",
+                "PrixElec" => "Prix électricité",
+                "Config" => "Configuration",
+                _ => tag
+            };
+
+            // Chargement lazy de la vue
+            MainContent.Content = tag switch
+            {
+                "Dashboard" => _viewDashboard ??= new DashboardView(),
+                "Mesures" => _viewMesures ??= new MeasurementsView(),
+                "Comparaison" => _viewComparaison ??= new ComparisonView(),
+                "Saisie" => _viewSaisie ??= new AddMeasureView(),
+                "PrixElec" => _viewPrixElec ??= new PrixElecView(),
+                "Config" => _viewConfig ??= new ConfigView(),
+                _ => null
+            };
         }
-
     }
 }
