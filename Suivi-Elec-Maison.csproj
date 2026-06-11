@@ -15,8 +15,8 @@
 
 
   <ItemGroup>
-    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.2" />
-    <PackageReference Include="Npgsql" Version="10.0.2" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.4" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
 
   <!-- Exclude tools and other helper projects from the WPF project's compilation -->
@@ -25,10 +25,10 @@
     <None Remove="Tools\**\*" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="MainWindow.xaml.cs" />
+    <Compile Remove="MeasurementsWindow.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Remove="MainWindow.xaml" />
+    <Page Remove="MeasurementsWindow.xaml" />
   </ItemGroup>
 
 

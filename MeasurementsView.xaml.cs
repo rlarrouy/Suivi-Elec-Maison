@@ -426,4 +426,9 @@ namespace Suivi_Elec_Maison
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
+    internal record SyntheseRow(string Libelle, string Production, string Stockage,
+        string ConsoVerte, string ConsoReseau, string ConsoTotale);
+    internal record RatiosRow(string Libelle, string RatioVerteProd,
+        string RatioVerteConso, string RatioProdConso);
+    internal record SimulationRow(string Libelle, string HP, string HC, string Total);
 }
