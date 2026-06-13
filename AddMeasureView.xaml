@@ -5,7 +5,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
         <StackPanel>
 
-            <Grid MaxWidth="520" HorizontalAlignment="Left">
+            <Grid MaxWidth="700" HorizontalAlignment="Left">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
